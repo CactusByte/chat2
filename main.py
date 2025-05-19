@@ -27,8 +27,7 @@ app = FastAPI()
 socket_app = socketio.ASGIApp(
     sio,
     app,
-    socketio_path='socket.io',
-    cors_allowed_origins=os.getenv("ALLOWED_ORIGINS", "*")
+    socketio_path='socket.io'
 )
 
 # Database connection management
