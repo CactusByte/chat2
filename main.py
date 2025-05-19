@@ -11,10 +11,25 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Create Socket.IO server
-sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=os.getenv("ALLOWED_ORIGINS", "*"))
+# Create Socket.IO server with proper CORS and transport configuration
+sio = socketio.AsyncServer(
+    async_mode="asgi",
+    cors_allowed_origins=os.getenv("ALLOWED_ORIGINS", "*"),
+    logger=True,
+    engineio_logger=True,
+    ping_timeout=60,
+    ping_interval=25,
+    async_handlers=True,
+    transports=['websocket', 'polling']
+)
+
 app = FastAPI()
-socket_app = socketio.ASGIApp(sio, app)
+socket_app = socketio.ASGIApp(
+    sio,
+    app,
+    socketio_path='socket.io',
+    cors_allowed_origins=os.getenv("ALLOWED_ORIGINS", "*")
+)
 
 # Database connection management
 @contextmanager
@@ -49,6 +64,8 @@ def validate_wallet(wallet: str) -> bool:
 @sio.event
 async def connect(sid, environ):
     print(f"User connected: {sid}")
+    # Accept the connection
+    return True
 
 @sio.event
 async def disconnect(sid):
